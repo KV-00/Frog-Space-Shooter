@@ -1,34 +1,34 @@
 extends KinematicBody2D
 
 var plbullet := preload("res://player/bullet.tscn")
-var pltongue := preload("res://player/TongueEnd.tscn")
+var pltongue := preload("res://player/tongueEnd.tscn")
 
 onready var animatedSprite := $AnimatedSprite
 onready var firingPositions := $FiringPositions
 onready var fireDelayTimer := $FireDelayTimer
 onready var animationPlayer := $AnimationPlayer
 
-export var speed = 150
-export var fireDelay: float  = 0.1
-var friction = 0.1
-var acceleration = 0.1
-var velocity = Vector2.ZERO
+export var speed: float = 150
+export var fireDelay: float = 0.1
+var friction: float = 0.1
+var acceleration: float = 0.1
+var velocity: Vector2 = Vector2.ZERO
 var _tongue = null
 
 func can_shoot():
 	return _tongue == null or not _tongue.is_visible()
 
-func _process(_delta):
+func _process(_delta: float) -> void:
 	# Animate
-	if Input.is_action_pressed("move_left"):
+	if Input.is_action_pressed("move_right") and Input.is_action_pressed("move_left"):
+		animatedSprite.play("straight")
+	elif Input.is_action_pressed("move_left"):
 		animatedSprite.play("left")
 	elif Input.is_action_pressed("move_right"):
 		animatedSprite.play("right")
 	else:
 		animatedSprite.play("straight")
-	if Input.is_action_pressed("move_right") and Input.is_action_pressed("move_left"):
-		animatedSprite.play("straight")
-	
+
 	#Check if shooting bullet
 	if Input.is_mouse_button_pressed(BUTTON_LEFT) and fireDelayTimer.is_stopped():
 		fireDelayTimer.start(fireDelay)
@@ -37,7 +37,7 @@ func _process(_delta):
 			var bullet := plbullet.instance()
 			bullet.global_position = child.global_position
 			get_tree().current_scene.add_child(bullet)
-			
+
 	if Input.is_mouse_button_pressed(BUTTON_RIGHT) and can_shoot():
 		if _tongue == null:
 			_tongue = preload("TongueEnd.tscn").instance()
@@ -46,7 +46,7 @@ func _process(_delta):
 			tongue.global_position = child.global_position
 			get_tree().current_scene.add_child(tongue)
 
-func _physics_process(_delta):
+func _physics_process(_delta: float) -> void:
 	var input_velocity = Vector2.ZERO
 	# Check input for "desired" velocity
 	if Input.is_action_pressed("move_right"):
@@ -67,7 +67,7 @@ func _physics_process(_delta):
 		velocity = velocity.linear_interpolate(Vector2.ZERO, friction)
 	velocity = move_and_slide(velocity)
 
-	
+
 	# Make sure that we are in the screen
 	var viewRect := get_viewport_rect()
 	position.x = clamp(position.x, 0, viewRect.size.x)
